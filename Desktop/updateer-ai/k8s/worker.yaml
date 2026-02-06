@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: worker
+  template:
+    metadata:
+      labels:
+        app: worker
+    spec:
+      containers:
+        - name: worker
+          image: your-registry/updateer-worker:latest # User needs to build & push this
+          env:
+            - name: BACKEND_URL
+              value: "http://backend:8080"
+          envFrom:
+            - secretRef:
+                name: updateer-secrets

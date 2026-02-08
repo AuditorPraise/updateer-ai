@@ -1,0 +1,38 @@
+# Dependency folders (The biggest slowdowns)
+node_modules/
+vendor/
+
+# Build outputs
+dist/
+build/
+bin/
+server
+*.exe
+*.test
+*.out
+
+# Git and IDEs
+.git/
+.gitignore
+.vscode/
+.idea/
+.trae/
+*.swp
+*.DS_Store
+
+# Docker specific
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Environment and Secrets
+.env
+.env.*
+*.pem
+google-creds.json
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

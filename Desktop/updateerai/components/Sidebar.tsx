@@ -116,7 +116,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
         <section className="space-y-3">
           <div className="grid grid-cols-2 gap-2">
-            <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-3"><p className="text-[10px] text-slate-500 font-bold uppercase mb-1">Emails</p><p className="text-lg font-bold text-blue-400">{credits}</p></div>
+            <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-3"><p className="text-[10px] text-slate-500 font-bold uppercase mb-1">Credits</p><p className="text-lg font-bold text-blue-400">{credits}</p></div>
             <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-3"><p className="text-[10px] text-slate-500 font-bold uppercase mb-1">Campaigns</p><p className="text-lg font-bold text-purple-400">{campaignCredits}</p></div>
           </div>
           <button onClick={onPricingClick} className="w-full group flex items-center justify-between p-3 bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-xl hover:from-blue-600/30 hover:to-purple-600/30 transition-all">
@@ -203,6 +203,13 @@ const Sidebar: React.FC<SidebarProps> = ({
                     {isUploading ? <div className="w-3 h-3 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" /> : <Upload className="w-3 h-3" />}
                     Add Images
                   </button>
+                </div>
+
+                <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-2 flex items-start gap-2 mb-2">
+                  <Info className="w-3 h-3 text-blue-400 shrink-0 mt-0.5" />
+                  <p className="text-[10px] text-slate-400 leading-relaxed">
+                    <strong className="text-blue-300">Tip:</strong> The AI will analyze your uploaded images. To associate an image with a specific product, make sure the image filename contains the product name (e.g., "blue-sneakers.jpg").
+                  </p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-2 mt-1">

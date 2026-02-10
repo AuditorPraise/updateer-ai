@@ -113,10 +113,15 @@ const AuthPage: React.FC<AuthPageProps> = ({ onLogin, onSignup }) => {
             </p>
 
             {error && (
-              <div className="mb-6 p-3 bg-red-900/30 border border-red-500/50 rounded-xl text-red-200 text-sm flex items-center gap-2">
-                <AlertCircle className="w-4 h-4" />
-                {error}
-              </div>
+              <div className="mb-6 p-3 bg-red-900/30 border border-red-500/50 rounded-xl text-red-200 text-sm">
+            <div className="flex items-center gap-2 mb-2">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              <span>{error}</span>
+            </div>
+            <p className="text-xs text-red-300/80 pl-6 border-t border-red-500/20 pt-2">
+              If you continue to have issues, contact customer care at <a href="mailto:praiselabsinc@gmail.com" className="underline hover:text-red-200">praiselabsinc@gmail.com</a>
+            </p>
+          </div>
             )}
 
             <form onSubmit={handleSubmit} className="space-y-5">

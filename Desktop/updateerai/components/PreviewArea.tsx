@@ -187,15 +187,15 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({ data, loading, user, onExport
               <div className="space-y-4">
                 <div className="flex justify-between py-3 border-b border-slate-800">
                   <span className="text-slate-400">Subject Line</span>
-                  <span className="text-white font-medium">{data.metadata.subjectLine}</span>
+                  <span className="text-white font-medium">{data.metadata?.subjectLine || 'N/A'}</span>
                 </div>
                 <div className="flex justify-between py-3 border-b border-slate-800">
                   <span className="text-slate-400">Category</span>
-                  <span className="text-white font-medium">{data.metadata.category}</span>
+                  <span className="text-white font-medium">{data.metadata?.category || 'N/A'}</span>
                 </div>
                 <div className="flex justify-between py-3 border-b border-slate-800">
                   <span className="text-slate-400">Estimated Read Time</span>
-                  <span className="text-white font-medium">{data.metadata.estimatedReadTime} min</span>
+                  <span className="text-white font-medium">{data.metadata?.estimatedReadTime || 0} min</span>
                 </div>
               </div>
               <div className="mt-8">

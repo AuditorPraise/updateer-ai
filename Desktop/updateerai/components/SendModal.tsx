@@ -8,7 +8,7 @@ interface SendModalProps {
   domains: UserDomain[];
   user: UserProfile;
   onClose: () => void;
-  onSend: (selectedIds: string[], fromAddress: string) => Promise<void>;
+  onSend: (selectedIds: string[], fromAddress: string, domainId: number) => Promise<void>;
   emailSubject: string;
 }
 
@@ -89,7 +89,7 @@ const SendModal: React.FC<SendModalProps> = ({ contacts, domains, user, onClose,
         fromAddress = `${senderName} <onboarding@resend.dev>`;
       }
 
-      await onSend(Array.from(selectedIds), fromAddress);
+      await onSend(Array.from(selectedIds), fromAddress, Number(selectedDomainId) || 0);
       onClose();
     } catch (err: any) {
       setError(err.message || 'Failed to send emails. Please try again.');
@@ -176,13 +176,21 @@ const SendModal: React.FC<SendModalProps> = ({ contacts, domains, user, onClose,
           </div>
           
           {!selectedDomainId && (
-            <div className="flex items-start gap-2 text-xs text-amber-500 bg-amber-900/10 p-2 rounded-lg border border-amber-500/20">
-              <Info className="w-4 h-4 shrink-0 mt-0.5" />
-              <p>
-                <strong>Sandbox Mode:</strong> Using the general domain restricts sending to <u>only your verified email address</u>. 
-                Add a custom domain in Profile to send to your full contact list.
-              </p>
-            </div>
+            <>
+              <div className="flex items-start gap-2 text-xs text-amber-500 bg-amber-900/10 p-2 rounded-lg border border-amber-500/20">
+                <Info className="w-4 h-4 shrink-0 mt-0.5" />
+                <p>
+                  <strong>Sandbox Mode:</strong> Using the general domain restricts sending to <u>only your verified email address</u>. 
+                  Add a custom domain in Profile to send to your full contact list.
+                </p>
+              </div>
+              <div className="flex items-start gap-2 text-xs text-blue-400 bg-blue-900/10 p-2 rounded-lg border border-blue-500/20">
+                <Info className="w-4 h-4 shrink-0 mt-0.5" />
+                <p>
+                  You must add and successfully verify your custom domain before you can send emails. Contact customer support for help if needed.
+                </p>
+              </div>
+            </>
           )}
         </div>
 

@@ -21,13 +21,27 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ profile, domains, onSave, onB
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Domain Management State
-  // const [domains, setDomains] = useState<UserDomain[]>([]); // Removed local state
   const [domainLoading, setDomainLoading] = useState(false);
   const [newDomainName, setNewDomainName] = useState('');
   const [verifyingId, setVerifyingId] = useState<number | null>(null);
   const [errorMsg, setErrorMsg] = useState('');
 
-  // Removed useEffect fetchDomains
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    
+    // Auto-refresh domains every 5 seconds if there are any pending/verifying domains
+    const hasPendingDomains = domains.some(d => d.status !== 'verified');
+    
+    if (hasPendingDomains) {
+      interval = setInterval(() => {
+        onDomainsRefresh();
+      }, 5000);
+    }
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [domains, onDomainsRefresh]);
 
   const handleRegisterDomain = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,7 +55,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ profile, domains, onSave, onB
       const res = await fetch('/api/v1/domains', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ domain_name: cleanDomain }),
+        body: JSON.stringify({ domainName: cleanDomain }),
       });
       if (res.ok) {
         await onDomainsRefresh(); // Refresh parent state
@@ -251,11 +265,16 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ profile, domains, onSave, onB
               </div>
 
               {errorMsg && (
-                <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-3 flex items-start gap-3">
-                  <div className="w-5 h-5 rounded-full bg-red-500/20 flex items-center justify-center shrink-0 mt-0.5">
-                    <span className="text-red-400 font-bold text-xs">!</span>
+                <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-3">
+                  <div className="flex items-start gap-3 mb-2">
+                    <div className="w-5 h-5 rounded-full bg-red-500/20 flex items-center justify-center shrink-0 mt-0.5">
+                      <span className="text-red-400 font-bold text-xs">!</span>
+                    </div>
+                    <p className="text-sm text-red-400">{errorMsg}</p>
                   </div>
-                  <p className="text-sm text-red-400">{errorMsg}</p>
+                  <p className="text-xs text-red-400/80 pl-8 border-t border-red-500/10 pt-2">
+                    Need help with DNS? Contact support: <a href="mailto:praiselabsinc@gmail.com" className="underline hover:text-red-300">praiselabsinc@gmail.com</a>
+                  </p>
                 </div>
               )}
 
@@ -345,16 +364,27 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ profile, domains, onSave, onB
                         {dnsRecords.length > 0 && (
                           <div className="bg-slate-900 rounded-lg p-4 space-y-8 overflow-x-auto">
                             {domain.status !== 'verified' && (
-                              <div className="mb-2 bg-amber-500/10 border border-amber-500/20 rounded-lg p-3 flex items-start gap-3">
-                                <AlertCircle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
-                                <div>
-                                  <p className="text-sm font-medium text-amber-200">Action Required: Update DNS Records</p>
-                                  <p className="text-xs text-amber-200/70 mt-1">
-                                    Add the following records to your DNS provider to verify ownership.
-                                    <span className="block mt-1 italic opacity-75">Propagation may take up to 48 hours.</span>
-                                  </p>
+                              <>
+                                <div className="mb-2 bg-amber-500/10 border border-amber-500/20 rounded-lg p-3 flex items-start gap-3">
+                                  <AlertCircle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+                                  <div>
+                                    <p className="text-sm font-medium text-amber-200">Action Required: Update DNS Records</p>
+                                    <p className="text-xs text-amber-200/70 mt-1">
+                                      Add the following records to your DNS provider to verify ownership.
+                                      <span className="block mt-1 italic opacity-75">Propagation may take up to 48 hours.</span>
+                                    </p>
+                                  </div>
                                 </div>
-                              </div>
+                                <div className="mb-6 bg-blue-500/10 border border-blue-500/20 rounded-lg p-3 flex items-start gap-3">
+                                  <Info className="w-5 h-5 text-blue-400 shrink-0 mt-0.5" />
+                                  <div>
+                                    <p className="text-sm font-medium text-blue-200">Need Assistance?</p>
+                                    <p className="text-xs text-blue-200/70 mt-1">
+                                      Contact customer support if you need help verifying your domain.
+                                    </p>
+                                  </div>
+                                </div>
+                              </>
                             )}
 
                             {/* Domain Verification (DKIM) */}

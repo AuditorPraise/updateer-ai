@@ -82,6 +82,10 @@ async def receive_sale(request: Request):
         logger.error(f"Error processing webhook: {e}")
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
+@app.get("/")
+def root():
+    return {"message": "Webhook Worker Running"}
+
 @app.get("/health")
 def health_check():
     return {"status": "ok"}

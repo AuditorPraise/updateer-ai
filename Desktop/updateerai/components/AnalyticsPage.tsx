@@ -150,9 +150,8 @@ const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ onBack, onPricingClick })
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
               {summaryData
-                .filter(stat => !['Delivered', 'Unique Opens', 'Total Clicks', 'Bounces'].includes(stat.name))
                 .map((stat) => (
                 <div key={stat.name} className="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl hover:border-slate-700 transition-colors">
                   <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">{stat.name}</p>
@@ -171,30 +170,7 @@ const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ onBack, onPricingClick })
               ))}
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-              <div className="bg-slate-900 border border-slate-800 p-8 rounded-3xl shadow-2xl">
-                <h3 className="text-xl font-bold mb-8 flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5 text-blue-400" />
-                  Engagement Over Time
-                </h3>
-                <div className="h-[300px] w-full">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={performanceData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
-                      <XAxis dataKey="date" stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
-                      <YAxis stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
-                      <Tooltip 
-                        contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '12px' }}
-                        itemStyle={{ fontSize: '12px' }}
-                      />
-                      <Legend iconType="circle" />
-                      <Line type="monotone" dataKey="opens" stroke="#8b5cf6" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
-                      <Line type="monotone" dataKey="clicks" stroke="#3b82f6" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-
+            <div className="grid grid-cols-1 gap-8 mb-12">
               <div className="bg-slate-900 border border-slate-800 p-8 rounded-3xl shadow-2xl">
                 <h3 className="text-xl font-bold mb-8 flex items-center gap-2">
                   <BarChart3 className="w-5 h-5 text-purple-400" />

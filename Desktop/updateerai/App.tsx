@@ -323,7 +323,7 @@ const App: React.FC = () => {
     }
   };
 
-  const handleSendEmails = async (selectedIds: string[], fromAddress: string) => {
+  const handleSendEmails = async (selectedIds: string[], fromAddress: string, domainId: number) => {
     if (!auth.user) return;
     const cost = selectedIds.length;
     if (auth.user.credits < cost) {
@@ -342,9 +342,9 @@ const App: React.FC = () => {
         // Prepare CID replacements
         // We now enforce strict static file usage for the logo as per requirements.
         // We replace ANY logoUrl occurrence with 'cid:brand-logo'.
-        if (logoUrl) {
-            emailHtml = emailHtml.replaceAll(logoUrl, 'cid:brand-logo');
-        }
+        // if (logoUrl) {
+        //    emailHtml = emailHtml.replaceAll(logoUrl, 'cid:brand-logo');
+        // }
         
         // Same for product image (if we were supporting it, but for now we focus on logo)
         // Leaving productUrl replacement logic as is or commenting out if we want to be strict.
@@ -362,6 +362,7 @@ const App: React.FC = () => {
             body: JSON.stringify({
                 recipients: recipientEmails,
                 from: fromAddress,
+                domainId: domainId,
                 subject: state.data?.metadata.subjectLine || 'Untitled',
                 html: emailHtml,
                 // We no longer send logoData or productData as base64
@@ -556,7 +557,7 @@ const App: React.FC = () => {
           />
         );
     }
-  }, [auth, view, contacts, savedEmails, state.data, state.loading, handleGenerate, handleExport]);
+  }, [auth, view, contacts, savedEmails, domains, state.data, state.loading, handleGenerate, handleExport]);
 
   if (!auth.isAuthenticated && !auth.loading) return <AuthPage onLogin={handleLogin} onSignup={handleSignup} />;
 
@@ -615,7 +616,7 @@ const App: React.FC = () => {
             contacts={contacts} 
             domains={domains}
             user={auth.user}
-            emailSubject={state.data?.metadata.subjectLine || 'Untitled'} 
+            emailSubject={state.data?.metadata?.subjectLine || 'Untitled'} 
             onClose={() => setIsSendModalOpen(false)} 
             onSend={handleSendEmails} 
           />

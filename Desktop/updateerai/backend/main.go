@@ -360,8 +360,8 @@ func (a *App) Signup(c echo.Context) error {
 		CreatedAt:    time.Now(),
 	}
 	user.Profile = Profile{
-		Credits:          100,
-		CampaignCredits:  10,
+		Credits:          20,
+		CampaignCredits:  5,
 		SubscriptionTier: "Free",
 	}
 
@@ -488,8 +488,8 @@ func (a *App) RequireAuth(next echo.HandlerFunc) echo.HandlerFunc {
 			isSubscribed := profile.IsSubscribed
 			var totalSent int64
 			a.DB.Model(&SentEmail{}).Where("user_id = ?", claims.UserID).Count(&totalSent)
-			hasTopUp := profile.Credits > 100 || profile.CampaignCredits > 10
-			trialExhausted := profile.Credits <= 0 || totalSent >= 100
+			hasTopUp := profile.Credits > 20 || profile.CampaignCredits > 5
+			trialExhausted := profile.Credits <= 0 || totalSent >= 20
 			inFreeTrial := !hasTopUp && !trialExhausted
 
 			if !isSubscribed && !inFreeTrial {
@@ -887,7 +887,7 @@ func (a *App) ListDomains(c echo.Context) error {
 
 	for i, d := range domains {
 		shouldSync := d.Status != "verified"
-		
+
 		// If verified but records show "not_started" or "pending", force sync
 		if !shouldSync && (strings.Contains(d.DNSRecords, "not_started") || strings.Contains(d.DNSRecords, "pending")) {
 			shouldSync = true
@@ -899,13 +899,13 @@ func (a *App) ListDomains(c echo.Context) error {
 			if err == nil {
 				// Always update local DB if we fetched successfully, to ensure records are fresh
 				// even if status string hasn't changed (e.g. domain verified, but records updated)
-				
+
 				// Update response object
 				domains[i].Status = rDomain.Status
 				domains[i].Region = rDomain.Region
 				recordsBytes, _ := json.Marshal(rDomain.Records)
 				domains[i].DNSRecords = string(recordsBytes)
-				
+
 				// Update DB
 				a.DB.Model(&UserDomain{}).Where("id = ?", d.ID).Updates(map[string]interface{}{
 					"status":      rDomain.Status,

@@ -109,7 +109,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ onLogin, onSignup }) => {
               {isLogin ? 'Welcome Back' : 'Start Your Free Trial'}
             </h2>
             <p className="text-slate-500 text-sm mb-8">
-              {isLogin ? 'Access your autonomous marketing hub.' : 'Join 10,000+ brands using updateer ai for email automation. Includes 100 Free Credits.'}
+              {isLogin ? 'Access your autonomous marketing hub.' : 'Join 10,000+ brands using updateer ai for email automation. Includes 20 Free Credits.'}
             </p>
 
             {error && (

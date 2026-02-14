@@ -8,6 +8,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 	"time"
@@ -547,6 +548,14 @@ func (a *App) constructPublicURL(c echo.Context, filename, bucket string) string
 	s3Endpoint := os.Getenv("S3_ENDPOINT")
 	s3UseSSL := os.Getenv("S3_USE_SSL") == "true"
 
+	cleanFilename := strings.TrimPrefix(filename, bucket+"/")
+	// URL encode the filename part to handle spaces and special chars
+	parts := strings.Split(cleanFilename, "/")
+	for i, p := range parts {
+		parts[i] = url.PathEscape(p)
+	}
+	encodedFilename := strings.Join(parts, "/")
+
 	if s3Endpoint != "" {
 		scheme := "http"
 		if s3UseSSL {
@@ -556,8 +565,7 @@ func (a *App) constructPublicURL(c echo.Context, filename, bucket string) string
 			s3Endpoint = fmt.Sprintf("%s://%s", scheme, s3Endpoint)
 		}
 		s3Endpoint = strings.TrimRight(s3Endpoint, "/")
-		cleanFilename := strings.TrimPrefix(filename, bucket+"/")
-		return fmt.Sprintf("%s/%s/%s", s3Endpoint, bucket, cleanFilename)
+		return fmt.Sprintf("%s/%s/%s", s3Endpoint, bucket, encodedFilename)
 	}
 
 	scheme := "https"
@@ -569,8 +577,7 @@ func (a *App) constructPublicURL(c echo.Context, filename, bucket string) string
 		appURL = fmt.Sprintf("%s://%s", scheme, c.Request().Host)
 	}
 	appURL = strings.TrimSuffix(appURL, "/")
-	cleanFilename := strings.TrimPrefix(filename, bucket+"/")
-	return fmt.Sprintf("%s/api/v1/images/%s/%s", appURL, bucket, cleanFilename)
+	return fmt.Sprintf("%s/api/v1/images/%s/%s", appURL, bucket, encodedFilename)
 }
 
 func (a *App) GenerateEmail(c echo.Context) error {
@@ -652,6 +659,10 @@ func (a *App) GenerateEmail(c echo.Context) error {
 		productImagesInstruction = "Include these product images in the body where appropriate:\n" + strings.Join(imgTags, "\n")
 	}
 
+	// Sanitize Logo URL for the prompt (replace spaces with %20)
+	// This ensures the AI receives a valid URL even if the DB has spaces
+	safeLogoURL := strings.ReplaceAll(config.LogoURL, " ", "%20")
+
 	prompt := fmt.Sprintf(`Generate an HTML email.
 Type: %s
 Brand: %s
@@ -663,13 +674,14 @@ Style: %s
 Context: %s
 
 STRICT GENERATION RULES:
-1. IMAGES: You must use the Brand Logo (%s) at the top. Do NOT use any other images, banners, or color blocks.
-2. PRODUCT IMAGES: %s
-3. CTA: %s
-4. SOCIALS: %s
-5. FOOTER: Do NOT include privacy policy or unsubscribe links.
-6. CONTENT: Strictly use the provided campaign Type and Context. Do not hallucinate offers or details not present in the input.
-7. TONE: The email MUST sound authentic, conversational, and human. Avoid robotic phrases, marketing jargon, and overly formal language. Write as if a real person is emailing a friend or colleague.
+1. BRAND CONTEXT (CRITICAL): You MUST incorporate the Brand Context into the email copy. Use the brand's voice and tone throughout. Do not sound generic.
+2. IMAGES: You must use the Brand Logo (%s) at the top. Do NOT use any other images, banners, or color blocks.
+3. PRODUCT IMAGES: %s
+4. CTA: %s
+5. SOCIALS: %s
+6. FOOTER: Do NOT include privacy policy or unsubscribe links.
+7. CONTENT: Strictly use the provided campaign Type and Context. Do not hallucinate offers or details not present in the input.
+8. TONE: The email MUST sound authentic, conversational, and human. Avoid robotic phrases, marketing jargon, and overly formal language. Write as if a real person is emailing a friend or colleague.
 
 Return ONLY JSON with the following structure:
 {
@@ -683,7 +695,7 @@ Return ONLY JSON with the following structure:
 }`,
 		config.Type, config.BrandName, config.PrimaryGoal, config.AudienceProfile,
 		config.BrandVoice, config.MustHaves, config.DesignStyle, config.Context,
-		config.LogoURL,
+		safeLogoURL,
 		productImagesInstruction,
 		ctaInstruction,
 		socialsInstruction)

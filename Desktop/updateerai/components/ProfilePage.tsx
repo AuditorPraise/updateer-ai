@@ -215,7 +215,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ profile, domains, onSave, onB
                   Using your own domain (e.g., <span className="font-mono text-blue-300">mail.yourbrand.com</span>) builds trust and drastically reduces the chance of your emails landing in spam.
                 </p>
                 <p className="mt-2 text-xs text-slate-500 border-t border-blue-500/20 pt-2">
-                  <span className="font-semibold text-amber-500">Note:</span> If you don't add a custom domain, your emails will be sent via our general shared domain, which may impact deliverability.
+                  <span className="font-semibold text-amber-500">Note:</span> Please you're required to add your domain. Sending from your domain strengthens email deliverability
                 </p>
               </div>
             </div>

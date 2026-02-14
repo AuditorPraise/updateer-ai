@@ -44,8 +44,8 @@ func InitMinio() *MinioClient {
 	// if os.Getenv("S3_USE_SSL") == "true" {
 	// 	useSSL = true
 	// }
-	
-	// If S3_ENDPOINT is set, we prefer that for the client connection 
+
+	// If S3_ENDPOINT is set, we prefer that for the client connection
 	// (assuming we are running outside the mesh or need public DNS resolution)
 	// HOWEVER, for internal docker communication, we usually stick to "minio:9000"
 	// The user request specifically asks for S3_ENDPOINT to be used.
@@ -89,7 +89,19 @@ func InitMinio() *MinioClient {
 		} else {
 			log.Printf("Successfully set public policy for bucket %s", bucketName)
 		}
-		
+
+		// ALSO set policy for 'browser' bucket if it exists (fixing user error)
+		existsBrowser, errBrowser := client.BucketExists(context.Background(), "browser")
+		if errBrowser == nil && existsBrowser {
+			policyBrowser := `{"Version": "2012-10-17","Statement": [{"Action": ["s3:GetObject"],"Effect": "Allow","Principal": {"AWS": ["*"]},"Resource": ["arn:aws:s3:::browser/*"]}]}`
+			err = client.SetBucketPolicy(context.Background(), "browser", policyBrowser)
+			if err != nil {
+				log.Printf("Failed to set bucket policy for browser: %v", err)
+			} else {
+				log.Printf("Successfully set public policy for bucket browser")
+			}
+		}
+
 		return &MinioClient{Client: client, BucketName: bucketName, Endpoint: endpoint}
 	}
 
@@ -108,15 +120,15 @@ func (m *MinioClient) UploadFileStream(filename string, reader io.Reader, size i
 	_, err := m.Client.PutObject(ctx, m.BucketName, filename, reader, size, minio.PutObjectOptions{
 		ContentType: contentType,
 	})
-    
+
 	if err != nil {
 		return "", err
 	}
-    
-    // Construct URL
-    // We need to return the URL relative to the bucket or full URL
-    // Ideally full URL if we have public host
-    return filename, nil
+
+	// Construct URL
+	// We need to return the URL relative to the bucket or full URL
+	// Ideally full URL if we have public host
+	return filename, nil
 }
 
 func (m *MinioClient) UploadImage(base64Data string, folder string) (string, error) {
@@ -133,7 +145,7 @@ func (m *MinioClient) UploadImage(base64Data string, folder string) (string, err
 		return "", fmt.Errorf("invalid base64 meta")
 	}
 	mimeType := strings.Split(meta, ":")[1]
-	
+
 	ext := "png"
 	if strings.Contains(mimeType, "jpeg") || strings.Contains(mimeType, "jpg") {
 		ext = "jpg"
@@ -165,7 +177,7 @@ func (m *MinioClient) GetFileStream(bucketName, filename string) (io.ReadCloser,
 	if err != nil {
 		return nil, "", err
 	}
-	
+
 	stat, err := object.Stat()
 	if err != nil {
 		return nil, "", err

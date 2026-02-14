@@ -36,7 +36,7 @@ func InitMinio() *MinioClient {
 	}
 	bucketName := os.Getenv("MINIO_BUCKET_NAME")
 	if bucketName == "" {
-		bucketName = "logos"
+		bucketName = "browser"
 	}
 
 	// S3 Override for Cloudflare Tunnel

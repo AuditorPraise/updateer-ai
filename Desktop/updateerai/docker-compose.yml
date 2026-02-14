@@ -47,7 +47,7 @@ services:
       MINIO_ENDPOINT: "pulse-minio-ent:9000"
       MINIO_ROOT_USER: "admin"
       MINIO_ROOT_PASSWORD: "password123"
-      MINIO_BUCKET_NAME: "logos"
+      MINIO_BUCKET_NAME: "browser"
       MINIO_PUBLIC_HOST: "https://logos.updateerai.fun" # e.g. https://files.yourdomain.com
       S3_ENDPOINT: "https://logos.updateerai.fun"
       S3_USE_SSL: "true"

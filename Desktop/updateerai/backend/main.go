@@ -168,6 +168,11 @@ func main() {
 
 	db.AutoMigrate(&User{}, &Profile{}, &Contact{}, &SavedDesign{}, &UserDomain{}, &SentEmail{}, &UnsubscribedUser{}, &Subscription{}, &Invoice{})
 
+	// Migration: Fix Logo URLs to use 'browser' bucket
+	// This replaces /logos/ with /browser/logos/ in existing URLs
+	// to match the working file path structure in MinIO
+	db.Exec("UPDATE profiles SET logo_url = REPLACE(logo_url, '/logos/', '/browser/logos/') WHERE logo_url LIKE '%/logos/%' AND logo_url NOT LIKE '%/browser/%'")
+
 	e := echo.New()
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())

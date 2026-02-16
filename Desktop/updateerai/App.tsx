@@ -11,7 +11,7 @@ import SavedDesignsPage from './components/SavedDesignsPage';
 import AnalyticsPage from './components/AnalyticsPage';
 import PaymentSuccessPage from './components/PaymentSuccessPage';
 import { EmailConfig, GenerationState, AuthState, UserProfile, Contact, PricingPlan, SavedEmail, UserDomain } from './types';
-import { AlertCircle, X, CheckCircle2 } from 'lucide-react';
+import { AlertCircle, X, CheckCircle2, Laptop2 } from 'lucide-react';
 
 const App: React.FC = () => {
   // Performance Optimization: Initialize state from localStorage immediately to avoid "Loading" flash
@@ -562,9 +562,16 @@ const App: React.FC = () => {
   if (!auth.isAuthenticated && !auth.loading) return <AuthPage onLogin={handleLogin} onSignup={handleSignup} />;
 
   return (
-    <div className="flex h-screen bg-slate-950 text-slate-100 overflow-hidden">
-      {auth.isAuthenticated && (
-        <Sidebar 
+    <div className="flex flex-col h-screen bg-slate-950 text-slate-100 overflow-hidden">
+      <div className="lg:hidden bg-indigo-900/80 border-b border-indigo-500/30 text-indigo-100 text-center py-2 px-4 text-xs font-medium backdrop-blur-sm z-50 shrink-0">
+        <div className="flex items-center justify-center gap-2">
+          <Laptop2 className="w-3.5 h-3.5" />
+          <span>Updateer AI is optimized for desktop. Please use a desktop browser for the best experience.</span>
+        </div>
+      </div>
+      <div className="flex flex-1 overflow-hidden">
+        {auth.isAuthenticated && (
+          <Sidebar 
           config={config} 
           setConfig={setConfig} 
           onGenerate={handleGenerate} 
@@ -622,6 +629,7 @@ const App: React.FC = () => {
           />
         )}
       </main>
+      </div>
     </div>
   );
 };

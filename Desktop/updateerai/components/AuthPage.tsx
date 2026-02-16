@@ -34,6 +34,14 @@ const AuthPage: React.FC<AuthPageProps> = ({ onLogin, onSignup }) => {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 overflow-x-hidden">
+      {/* Mobile Notice */}
+      <div className="lg:hidden bg-indigo-900/80 border-b border-indigo-500/30 text-indigo-100 text-center py-2.5 px-4 text-xs font-medium backdrop-blur-sm sticky top-0 z-50">
+        <div className="flex items-center justify-center gap-2">
+          <Laptop2 className="w-3.5 h-3.5" />
+          <span>Updateer AI is optimized for desktop. Please use a desktop browser for the best experience.</span>
+        </div>
+      </div>
+
       {/* Navigation / Header */}
       <nav className="max-w-7xl mx-auto px-6 py-6 flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -93,8 +101,6 @@ const AuthPage: React.FC<AuthPageProps> = ({ onLogin, onSignup }) => {
                 <h3 className="text-sm font-semibold text-blue-100">Bring Your Own Domain</h3>
                 <p className="text-xs text-slate-400 mt-1 leading-relaxed">
                   Connecting your custom domain (e.g., mail.yourbrand.com) helps reduce the chances of your emails ending up in spam folders. 
-                  <br className="mb-1" />
-                  <span className="opacity-80">Without it, your campaigns will be sent via our general shared domain.</span>
                 </p>
               </div>
             </div>
@@ -161,6 +167,12 @@ const AuthPage: React.FC<AuthPageProps> = ({ onLogin, onSignup }) => {
                     {showPassword ? 'Hide' : 'Show'}
                   </button>
                 </div>
+                {!isLogin && (
+                  <p className="mt-2 text-xs text-amber-400/80 flex items-start gap-1.5">
+                    <AlertCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                    <span>Please double-check your email and password. Write them down somewhere safe to avoid losing access.</span>
+                  </p>
+                )}
               </div>
 
               <button

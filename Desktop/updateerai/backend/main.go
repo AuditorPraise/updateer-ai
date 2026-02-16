@@ -1141,6 +1141,10 @@ func (a *App) SendEmail(c echo.Context) error {
 	}
 
 	apiKey := os.Getenv("RESEND_API_KEY")
+	if apiKey == "" {
+		fmt.Println("Error: RESEND_API_KEY is missing")
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Server configuration error: Missing API Key"})
+	}
 	client := resend.NewClient(apiKey)
 	appURL := os.Getenv("APP_URL")
 
@@ -1159,16 +1163,19 @@ func (a *App) SendEmail(c echo.Context) error {
 		}
 
 		sent, err := client.Emails.Send(params)
-		if err == nil {
-			a.DB.Create(&SentEmail{
-				ResendID:  sent.Id,
-				UserID:    userID,
-				Status:    "sent",
-				Subject:   req.Subject,
-				Recipient: recipient,
-				CreatedAt: time.Now(),
-			})
+		if err != nil {
+			fmt.Printf("Error sending email to %s: %v\n", recipient, err)
+			return c.JSON(http.StatusInternalServerError, echo.Map{"error": fmt.Sprintf("Failed to send email to %s: %v", recipient, err)})
 		}
+
+		a.DB.Create(&SentEmail{
+			ResendID:  sent.Id,
+			UserID:    userID,
+			Status:    "sent",
+			Subject:   req.Subject,
+			Recipient: recipient,
+			CreatedAt: time.Now(),
+		})
 	}
 
 	return c.JSON(http.StatusOK, echo.Map{"message": "Emails sent"})

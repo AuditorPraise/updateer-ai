@@ -5,10 +5,13 @@ WORKDIR /app
 
 # Set Go Proxy explicitly to ensure connectivity
 ENV GOPROXY=https://proxy.golang.org,direct
+# Increase network timeout for slow connections
+ENV GO111MODULE=on
 
 # Copy dependency files first for better caching
 COPY go.mod go.sum ./
-RUN go mod download
+# Robust download with retries for unstable network
+RUN for i in 1 2 3; do go mod download && break || (echo "Download failed, retrying in 5s..." && sleep 5); done
 
 COPY . .
 

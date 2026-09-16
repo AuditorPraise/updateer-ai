@@ -1,0 +1,93 @@
+name: Lint & Type Check
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  frontend-lint:
+    name: Frontend (ESLint + TypeScript)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: Desktop/updateerai/package-lock.json
+
+      - name: Install dependencies
+        working-directory: Desktop/updateerai
+        run: npm install
+
+      - name: Run ESLint
+        working-directory: Desktop/updateerai
+        run: npm run lint --if-present
+        continue-on-error: true
+
+      - name: Run TypeScript type check
+        working-directory: Desktop/updateerai
+        run: npx tsc --noEmit
+
+  backend-lint:
+    name: Backend (golangci-lint)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: latest
+          working-directory: Desktop/updateerai/backend
+          args: --timeout 5m
+
+  security-check:
+    name: Security & Secrets
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check for hardcoded secrets
+        run: |
+          # Fail if .env file is committed (excluding .env.example)
+          if git ls-files --cached | grep -E '\.env$' | grep -v '\.env\.example'; then
+            echo "❌ ERROR: .env file is committed. Use .env.example instead."
+            exit 1
+          fi
+          
+          # Check for common secret patterns
+          if git diff --cached | grep -iE '(password|secret|token|key)\s*[=:]\s*["\x27]?[a-zA-Z0-9]+["\x27]?' | grep -v '\.example'; then
+            echo "⚠️  WARNING: Possible hardcoded secrets detected. Review before committing."
+          fi
+
+  summary:
+    name: Lint Status
+    runs-on: ubuntu-latest
+    needs: [frontend-lint, backend-lint, security-check]
+    if: always()
+    steps:
+      - name: Check results
+        run: |
+          if [[ "${{ needs.frontend-lint.result }}" != "success" ]]; then
+            echo "❌ Frontend lint failed"
+            exit 1
+          fi
+          if [[ "${{ needs.backend-lint.result }}" != "success" ]]; then
+            echo "❌ Backend lint failed"
+            exit 1
+          fi
+          if [[ "${{ needs.security-check.result }}" != "success" ]]; then
+            echo "❌ Security checks failed"
+            exit 1
+          fi
+          echo "✅ All checks passed!"

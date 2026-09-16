@@ -1,122 +1,68 @@
+version: '3.8'
+
 services:
-  db:
-    image: postgres:17-alpine
-    container_name: mail_db
+  postgres:
+    image: postgres:15-alpine
+    container_name: updateer-ai-postgres
     environment:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: secretpassword
       POSTGRES_DB: mail_manager
     ports:
       - "5432:5432"
-    networks:
-      - pulse-net
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U admin -d mail_manager"]
-      interval: 5s
+      interval: 10s
       timeout: 5s
       retries: 5
-
-  app:
-    build: ./backend
-    container_name: mail_app
-    depends_on:
-      db:
-        condition: service_healthy
-      minio:
-        condition: service_started
-    environment:
-      DB_URL: "host=db user=admin password=secretpassword dbname=mail_manager port=5432 sslmode=disable"
-      JWT_SECRET: "replace-this-in-prod"
-      GOOGLE_APPLICATION_CREDENTIALS: /app/google-creds.json
-      # For Vertex AI:
-      GOOGLE_CLOUD_PROJECT: "studio-7394868738-b96a2"
-      GOOGLE_CLOUD_LOCATION: "us-central1"
-      # For Gemini API (optional fallback):
-      GEMINI_API_KEY: ${GEMINI_API_KEY}
-      RESEND_API_KEY: ${RESEND_API_KEY}
-      APP_URL: ${APP_URL}
-      RESEND_WEBHOOK_SECRET: ${RESEND_WEBHOOK_SECRET}
-      SELAR_SUBSCRIPTION_ID: "$$69s6r95h5r"
-      SELAR_STARTER_ID: "$$525419i69i"
-      SELAR_BULK_ID: "$$14v640u62r"
-      SELAR_MEGA_TOPUP_ID: "$$729117og53"
-      ADMIN_SECRET_KEY: "qwertyuiop"
-      # MinIO Configuration
-      MINIO_ENDPOINT: "pulse-minio-ent:9000"
-      MINIO_ROOT_USER: "admin"
-      MINIO_ROOT_PASSWORD: "password123"
-      MINIO_BUCKET_NAME: "browser"
-      MINIO_PUBLIC_HOST: "https://logos.updateerai.fun" # e.g. https://files.yourdomain.com
-      S3_ENDPOINT: "https://logos.updateerai.fun"
-      S3_USE_SSL: "true"
-    volumes:
-      - ./google-creds.json:/app/google-creds.json
-    ports:
-      - "8080:8080"
-    networks:
-      - pulse-net
-    healthcheck:
-      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8080/health || exit 1"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-      start_period: 60s
-
-  worker:
-    build: ./worker
-    container_name: selar_webhook_worker
-    depends_on:
-      - app
-    environment:
-      ADMIN_SECRET_KEY: "qwertyuiop"
-      BACKEND_URL: "http://mail_app:8080/api/v1/admin/credit"
-    ports:
-      - "8001:8000"
-    restart: always
-    networks:
-      - pulse-net
 
   minio:
-    image: minio/minio
-    container_name: pulse-minio-ent
+    image: minio/minio:latest
+    container_name: updateer-ai-minio
+    environment:
+      MINIO_ROOT_USER: admin
+      MINIO_ROOT_PASSWORD: minioadmin123
     ports:
       - "9000:9000"
       - "9001:9001"
-    environment:
-      MINIO_ROOT_USER: admin
-      MINIO_ROOT_PASSWORD: password123
-      # Console Access (Login) - Requires a separate Cloudflare Tunnel Hostname
-      MINIO_BROWSER_REDIRECT_URL: "https://console.updateerai.fun"
-      # API Access (Images/Uploads)
-      MINIO_SERVER_URL: "https://logos.updateerai.fun"
-      MINIO_LICENSE: "eyJhbGciOiJFUzM4NCIsInR5cCI6IkpXVCJ9.eyJhaWQiOjAsImNhcCI6MiwiZXhwIjoxLjc3NTEwNjE4ODk0MzQ3NTQ5M2U5LCJncnAiOjAsImlhdCI6MS43Njk5MjIxODg5NDM0NzU0OTNlOSwiaXNzIjoic3VibmV0QG1pbi5pbyIsImxpZCI6IjQzM2M1MThjLTFlMTMtNGNjYi1hYjNjLTJkNjA5NWU4Njk4NyIsIm9yZyI6IlVwZGF0ZWVyIEFJIiwicGxhbiI6IkVOVEVSUFJJU0UiLCJyb3AiOjIsInN1YiI6InByYWlzZW9ubGluZTI0N0BnbWFpbC5jb20iLCJ0cmlhbCI6dHJ1ZX0.Zt03ZtR6qKKtCoiTtPn1144N_seggTQWLxMJfQPFMPsPmtM_gg3T11WK4nVRQwUCUf17aYZsYBAA-SIjYq2r4b09RMeqWFibtbEOCuqvCz5WxT9g213IfHirYR0fFW0r"
     volumes:
       - minio_data:/data
     command: server /data --console-address ":9001"
-    networks:
-      - pulse-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  tunnel:
-    image: cloudflare/cloudflared:latest
-    container_name: cloudflared
-    restart: unless-stopped
-    command: tunnel run --token ${TUNNEL_TOKEN} --protocol http2 --no-autoupdate 
-    networks:
-      - pulse-net
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: updateer-ai-backend
     environment:
-      - TUNNEL_TOKEN=${TUNNEL_TOKEN}
+      DB_URL: host=postgres user=admin password=secretpassword dbname=mail_manager port=5432 sslmode=disable
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ROOT_USER: admin
+      MINIO_ROOT_PASSWORD: minioadmin123
+      MINIO_BUCKET_NAME: browser
+      PORT: 8080
+      LOG_LEVEL: info
+      LOG_FORMAT: text
+    ports:
+      - "8080:8080"
     depends_on:
-      minio:
-        condition: service_started
-      app:
+      postgres:
         condition: service_healthy
+      minio:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
   postgres_data:
   minio_data:
-
-networks:
-  pulse-net:
-    driver: bridge

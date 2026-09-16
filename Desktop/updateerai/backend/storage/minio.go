@@ -32,7 +32,7 @@ func InitMinio() *MinioClient {
 	}
 	secretKey := os.Getenv("MINIO_ROOT_PASSWORD")
 	if secretKey == "" {
-		secretKey = "password123"
+		log.Fatal("MINIO_ROOT_PASSWORD environment variable is required")
 	}
 	bucketName := os.Getenv("MINIO_BUCKET_NAME")
 	if bucketName == "" {
